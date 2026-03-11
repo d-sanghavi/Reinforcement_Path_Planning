@@ -113,16 +113,26 @@ This encourages the agent to **reach the goal with minimal steps**.
 # Project Structure
 Reinforcement_Path_Planning
 │
+
 ├── agent_brain.py # Q-learning agent implementation
+
 ├── env.py # Grid world environment
+
 ├── run_agent.py # Training and execution script
+
 │
-├── outputs
-│ ├── environment.png
-│ └── training_graph.png
+├──Results
+
+│ ├── staticQLearning.png
+
+│ └── Figure_1.png
+
+│ └── Figure_2.png
+
+│ └── Figure_3.png
 │
+
 ├── README.md
-└── requirements.txt
 
 
 ---
@@ -172,24 +182,37 @@ Visualize the grid world
 
 Plot training performance graphs
 
+---
+
 Phase 1 Results
 Environment Visualization
 
-Example: [RESULT](RL_Q-Learning_E1\Results\staticQLearning.png)
+Result:
+
+<img width="462" height="501" alt="staticQLearning" src="https://github.com/user-attachments/assets/b445511c-8d90-4c06-ab3a-7e6a4608ee8f" />
+
 
 Training Performance
 
-Add the training graph image like this:
+Training Graph:
 
-Exanple: [Training Graph](RL_Q-Learning_E1\Results\Figure_1.png)
+<img width="640" height="480" alt="Figure_1" src="https://github.com/user-attachments/assets/5ee6f25c-0fc1-4888-8667-26fb5b40aa7c" />
 
-Author
+
+---
+# Authors
 Suhani Gupta (Leader)
+
 Paridhi Jain
+
 Dhruv Sanghavi
+
 Khush Shah
+
 IPD Project – Reinforcement Learning Path Planning for (atmost 2) robots 
 
-License
+---
+
+# License
 
 This project is licensed under the MIT License.
