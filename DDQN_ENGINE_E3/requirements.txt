@@ -1,0 +1,23 @@
+# Core Data & ML
+numpy
+torch
+torchvision
+
+# Computer Vision & Image Processing
+opencv-python
+Pillow
+pytesseract
+pdf2image
+pypdfium2
+
+# CAD Processing
+ezdxf
+
+# UI & Visualization
+pygame-ce
+matplotlib
+colorama
+tqdm
+
+# System Utilities
+psutil
