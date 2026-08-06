@@ -442,6 +442,10 @@ def run_pathfinder(
     result.astar_nodes_expanded = astar_stats.get("nodes_expanded", 0)
 
     # ── DDQN greedy inference ─────────────────────────────────────────────────
+    if save_weights and os.path.exists(weights_path):
+        logger.info(f"[PathFinder] Loading best DDQN weights for final inference...")
+        agent.load(weights_path)
+        
     import psutil
     process = psutil.Process()
     mem_start = process.memory_info().rss
@@ -457,6 +461,11 @@ def run_pathfinder(
     result.ddqn_smoothness = ddqn_smooth
     
     # ── PPOA greedy inference ─────────────────────────────────────────────────
+    ppo_weights_path = weights_path.replace("ddqn", "ppoa")
+    if save_weights and os.path.exists(ppo_weights_path):
+        logger.info(f"[PathFinder] Loading best PPOA* weights for final inference...")
+        ppo_agent.load(ppo_weights_path)
+
     mem_start = process.memory_info().rss
     t_inf_start = time.perf_counter()
     ppo_path, ppo_coll, ppo_smooth, ppo_replans, ppo_avoid_rate = _run_ppoa_inference(ppo_agent, ppo_env, max_steps=ppo_env.max_steps)
