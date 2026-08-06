@@ -146,9 +146,16 @@ def generate_metrics_dashboard(
         color_key = "#ffffff" if i == 0 else ("#808090" if i == 1 else "#c0c0d0")
         weight = "bold" if i == 0 else "normal"
 
-        ax4.text(0.02, y, row[0], transform=ax4.transAxes, fontsize=11, color=color_key, fontweight=weight, va="top")
-        ax4.text(0.55, y, row[1], transform=ax4.transAxes, fontsize=11, color=_BLUE if i>1 else color_key, fontweight=weight, va="top")
-        ax4.text(0.75, y, row[2], transform=ax4.transAxes, fontsize=11, color=_PURPLE if i>1 else color_key, fontweight=weight, va="top")
+        if i < 2:
+            ax4.text(0.02, y, row[0], transform=ax4.transAxes, fontsize=11, color=color_key, fontweight=weight, va="top")
+            ax4.text(0.55, y, row[1], transform=ax4.transAxes, fontsize=11, color=color_key, fontweight=weight, va="top")
+            ax4.text(0.75, y, row[2], transform=ax4.transAxes, fontsize=11, color=color_key, fontweight=weight, va="top")
+        else:
+            ax4.text(0.02, y, row[0], transform=ax4.transAxes, fontsize=11, color=color_key, fontweight=weight, va="top")
+            ax4.text(0.50, y, "--", transform=ax4.transAxes, fontsize=11, color="#808090", fontweight=weight, va="top")
+            ax4.text(0.55, y, row[1], transform=ax4.transAxes, fontsize=11, color=_BLUE, fontweight=weight, va="top")
+            ax4.text(0.70, y, "--", transform=ax4.transAxes, fontsize=11, color="#808090", fontweight=weight, va="top")
+            ax4.text(0.75, y, row[2], transform=ax4.transAxes, fontsize=11, color=_PURPLE, fontweight=weight, va="top")
 
     ax4.set_title("12-Point Comparative Dashboard", fontsize=12, color="#e0e0ff", pad=8)
 
