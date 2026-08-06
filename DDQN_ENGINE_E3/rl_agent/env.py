@@ -105,6 +105,8 @@ class GridWorldEnv:
 
         # State dimension: flattened observation window + 2 goal direction channels
         self.state_size  = OBS_WINDOW * OBS_WINDOW + 2
+        if self.use_dijkstra_shaping:
+            self.state_size += OBS_WINDOW * OBS_WINDOW
         self.action_size = N_ACTIONS
 
         # Episode state
@@ -360,6 +362,7 @@ class GridWorldEnv:
         """
         Build the state vector:
           - N×N local grid window centered on agent (padded with obstacles at boundaries)
+          - If Dijkstra shaping is on, an N×N local window of the Dijkstra distance map
           - 2 normalized goal direction components (dx, dy)
         """
         r, c   = self.agent_pos
@@ -368,12 +371,20 @@ class GridWorldEnv:
 
         # Extract window with border padding
         obs = np.ones((obs_size, obs_size), dtype=np.float32)  # default: obstacle
+        dijkstra_obs = np.ones((obs_size, obs_size), dtype=np.float32) # default: max dist
+
         for dr_off in range(-half, half + 1):
             for dc_off in range(-half, half + 1):
                 nr_abs = r + dr_off
                 nc_abs = c + dc_off
                 if 0 <= nr_abs < self.rows and 0 <= nc_abs < self.cols:
                     obs[dr_off + half, dc_off + half] = float(self.grid[nr_abs, nc_abs])
+                    
+                    if self.use_dijkstra_shaping and self.dijkstra_map is not None:
+                        dist = self.dijkstra_map[nr_abs, nc_abs]
+                        if dist == float('inf'):
+                            dist = self.max_dijkstra_dist
+                        dijkstra_obs[dr_off + half, dc_off + half] = dist / self.max_dijkstra_dist
 
         # Goal direction (normalized)
         gr, gc   = self.goal
@@ -381,7 +392,11 @@ class GridWorldEnv:
         goal_dr  = (gr - r) / max_dist
         goal_dc  = (gc - c) / max_dist
 
-        state = np.concatenate([obs.flatten(), [goal_dr, goal_dc]])
+        if self.use_dijkstra_shaping and self.dijkstra_map is not None:
+            state = np.concatenate([obs.flatten(), dijkstra_obs.flatten(), [goal_dr, goal_dc]])
+        else:
+            state = np.concatenate([obs.flatten(), [goal_dr, goal_dc]])
+            
         return state.astype(np.float32)
 
     def _euclidean_to_goal(self, pos: tuple) -> float:
@@ -445,6 +460,7 @@ class PPOAEnv(GridWorldEnv):
             grid, start, goal, max_steps,
             use_potential_shaping=False,
             use_waypoint_shaping=True,
+            use_dijkstra_shaping=False,
         )
         self.astar_path = astar_path
         self.lookahead  = lookahead
