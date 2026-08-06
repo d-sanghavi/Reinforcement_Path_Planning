@@ -114,6 +114,21 @@ def run_pipeline(args):
     results_dir = Path(args.output_dir)
     results_dir.mkdir(parents=True, exist_ok=True)
 
+    # ── Clean up previous run outputs ──────────────────────────────────────────
+    old_files = [
+        "annotated_floor_plan.pdf", "coordinates.json", "door_cells.npy", 
+        "metrics_dashboard.png", "metrics.json", "occupancy_grid.npy", 
+        "occupancy_grid.png", "parsed_symbols.json", "scale_mapping.json"
+    ]
+    for fname in old_files:
+        fpath = results_dir / fname
+        if fpath.exists():
+            try:
+                fpath.unlink()
+            except Exception:
+                pass
+
+
     cprint(f"\n{'═'*66}", "magenta", bold=True)
     cprint(f"  CAD-to-Grid DDQN Path Planner  v2.1", "magenta", bold=True)
     cprint(f"{'═'*66}\n", "magenta", bold=True)

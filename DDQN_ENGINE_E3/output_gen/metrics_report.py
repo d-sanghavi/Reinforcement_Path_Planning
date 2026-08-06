@@ -127,7 +127,7 @@ def generate_metrics_dashboard(
         ["2. Avg Episode Reward (last 10)",         f"{ddqn_mean_r:.1f}",     f"{ppo_mean_r:.1f}"],
         ["3. Convergence Speed (Episodes)",         f"{pr.ddqn_convergence_episode}", f"{getattr(pr, 'ppoa_convergence_episode', '-')}"] ,
         ["4. Path Length (Grid Cells)",             f"{int(pr.ddqn_path_cost) if pr.ddqn_path_cost!=float('inf') else '-'}", f"{int(getattr(pr, 'ppoa_path_cost', 0)) if getattr(pr, 'ppoa_path_cost', 0)!=float('inf') else '-'}"] ,
-        ["5. Planning / Training Time (s)",         "N/A (simulated)", "N/A (simulated)"],
+        ["5. Planning / Training Time (s)",         f"{pr.astar_time_ms/1000:.3f}s", f"{pr.astar_time_ms/1000:.3f}s"],
         ["6. Total Navigation Time (s)",            f"{pr.ddqn_inference_time_ms/1000:.3f}s", f"{getattr(pr, 'ppoa_inference_time_ms', 0)/1000:.3f}s"] ,
         ["7. Optimality Ratio (Path/A*)",           f"{ddqn_opt:.2f}",        f"{ppo_opt:.2f}"],
         ["8. Collision Rate (%)",                   f"{ddqn_cr:.1f}%",        f"{ppo_cr:.1f}%"],

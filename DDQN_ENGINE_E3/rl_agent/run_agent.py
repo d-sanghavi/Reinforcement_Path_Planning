@@ -591,10 +591,10 @@ def _run_ppoa_inference(agent, env, max_steps: int = 5000) -> tuple:
                 dyn_obs_avoided += 1
 
         if info.get("event") == "goal_reached":
-            break
+            # dyn_obs_avoided is roughly steps taken while obstacles existed without hitting them
+            avoid_rate = (dyn_obs_avoided / max(1, dyn_obs_avoided + collisions)) * 100.0
+            smoothness = _calculate_smoothness(path)
+            return path, collisions, smoothness, env.replans, avoid_rate
 
-    # dyn_obs_avoided is roughly steps taken while obstacles existed without hitting them
-    avoid_rate = (dyn_obs_avoided / max(1, dyn_obs_avoided + collisions)) * 100.0
-    
-    smoothness = _calculate_smoothness(path)
-    return path, collisions, smoothness, env.replans, avoid_rate
+    # Failed to reach goal
+    return [], collisions, 0.0, env.replans, 0.0
