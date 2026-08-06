@@ -128,6 +128,9 @@ source rl_env/bin/activate
 
 # 3. Install dependencies
 pip install -r requirements.txt
+
+# 4. Train Model By Symbols
+python ./symbol_model/train_symbol_classifier.py
 ```
 *(Note: For Phase 1 fallback, you only need `pip install numpy matplotlib pygame`. The full `requirements.txt` handles PyTorch, OpenCV, and `pypdfium2` for v2.2).*
 
