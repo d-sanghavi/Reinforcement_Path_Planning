@@ -9,7 +9,7 @@
 
 A comprehensive autonomous path planning system where agents learn to navigate through environments while avoiding obstacles and minimizing travel cost. 
 
-Originally developed as an **IPD (Interdisciplinary Project Development)** course project simulating an urban grid world, this repository has evolved into a full end-to-end autonomous pipeline capable of ingesting real-world CAD floor plans and applying state-of-the-art Deep Reinforcement Learning.
+Originally developed as an **IPD (Innovative Product Development)** course project simulating an urban grid world, this repository has evolved into a full end-to-end autonomous pipeline capable of ingesting real-world CAD floor plans and applying state-of-the-art Deep Reinforcement Learning.
 
 ---
 
@@ -39,7 +39,9 @@ An advanced On-Policy agent using Proximal Policy Optimization (PPO) fused with 
 * Highly robust against *dynamic obstacles* (e.g., if a door suddenly closes mid-navigation).
 
 ### 📊 Metrics & Analytics Engine
-At the conclusion of every execution, it generates a comprehensive side-by-side JSON report (`Results/metrics.json`) between **DDQN** and **PPOA*** covering 14 data points, including: Success Rate, Convergence Speed, Path Length (Cells vs Real World m), Planning/Navigation Time, Optimality Ratio, Collision Rate, Path Smoothness, and Hardware Peak Usage.
+At the conclusion of every execution, it generates a comprehensive side-by-side JSON report (`Results/metrics.json`) between **DDQN** and **PPOA*** covering 14 data points, including: Success Rate, Convergence Speed, Path Length (Cells vs Real World m), Planning/Navigation Time, Optimality Ratio, Collision Rate, Path Smoothness, and Hardware Peak Usage. 
+
+**Note:** To provide a true reflection of overall agent behavior and stability, most path-related metrics (Length, Smoothness, Collisions) are calculated as the true mean average across all training episodes rather than a single greedy inference run. Furthermore, visual overlays (`metrics_dashboard.png`) will always render the **latest successful path** the agent discovered during training, ensuring you can visually inspect exactly how it reached the goal.
 
 ### 🔬 System Architecture (v2.2)
 

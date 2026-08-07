@@ -84,6 +84,7 @@ venv.bak/
 
 # Project specific outputs
 Results/
+metrics.json
 tmp/
 logs/
 *.log

@@ -71,6 +71,7 @@ class PlanningResult:
         self.astar_nodes_expanded: int = 0
 
         # ── DDQN training metrics ───────────────────
+        self.ddqn_success_rate: float = 0.0
         self.ddqn_episodes: int = 0
         self.ddqn_episode_rewards: list = []
         self.ddqn_episode_steps: list = []
@@ -86,6 +87,7 @@ class PlanningResult:
         self.ddqn_mem_peak: float = 0.0
 
         # ── PPOA* training metrics ───────────────────
+        self.ppoa_success_rate: float = 0.0
         self.ppoa_episodes: int = 0
         self.ppoa_episode_rewards: list = []
         self.ppoa_episode_steps: list = []
@@ -290,18 +292,36 @@ def run_pathfinder(
     ddqn_epsilons = []
     ddqn_losses = []
     ddqn_best_ep_reward = -float("inf")
-    ddqn_convergence_ep = n_episodes
-
     ppo_ep_rewards = []
     ppo_ep_steps = []
     ppo_actor_losses = []
     ppo_critic_losses = []
-    ppo_best_ep_reward = -float("inf")
+    ddqn_best_ep_reward = -float('inf')
+    ppo_best_ep_reward = -float('inf')
+
+    ddqn_convergence_ep = n_episodes
     ppo_convergence_ep = n_episodes
+
+    ddqn_success_eps = 0
+    ddqn_all_path_costs = []
+    ddqn_all_collisions = []
+    ddqn_all_smoothness = []
+    ddqn_latest_success_path = []
+
+    ppoa_success_eps = 0
+    ppoa_all_path_costs = []
+    ppoa_all_collisions = []
+    ppoa_all_smoothness = []
+    ppoa_latest_success_path = []
 
     for episode in range(n_episodes):
         ddqn_state = env.reset()
         ppo_state = ppo_env.reset()
+        
+        ddqn_ep_collisions = 0
+        ppoa_ep_collisions = 0
+        ddqn_path_taken = [tuple(env.start)]
+        ppoa_path_taken = [tuple(ppo_env.start)]
         
         ddqn_ep_reward = 0.0
         ppo_ep_reward = 0.0
@@ -321,7 +341,17 @@ def run_pathfinder(
                     max_dist=env.max_dijkstra_dist
                 )
                 ddqn_next_state, ddqn_reward, ddqn_done, info = env.step(ddqn_action)
-                agent.remember(ddqn_state, ddqn_action, ddqn_reward, ddqn_next_state, ddqn_done)
+                if info.get("event") == "collision":
+                    ddqn_ep_collisions += 1
+                ddqn_path_taken.append(tuple(env.current_pos))
+                
+                # Filter redundant wall bounces to prevent memory dilution
+                if info.get("event") in ["bounce", "boundary"]:
+                    if random.random() < 0.1:
+                        agent.remember(ddqn_state, ddqn_action, ddqn_reward, ddqn_next_state, ddqn_done)
+                else:
+                    agent.remember(ddqn_state, ddqn_action, ddqn_reward, ddqn_next_state, ddqn_done)
+                
                 loss = agent.learn()
                 if loss is not None:
                     ddqn_losses.append(loss)
@@ -331,6 +361,8 @@ def run_pathfinder(
                 
                 if info.get("event") == "goal_reached":
                     logger.info(f"[DDQN] Reached Goal! | Ep: {episode+1}/{n_episodes} | Steps: {ddqn_steps} | Reward: {ddqn_ep_reward:.1f} | Epsilon: {agent.epsilon:.3f}")
+                    ddqn_success_eps += 1
+                    ddqn_latest_success_path = list(ddqn_path_taken)
 
                 if ddqn_steps >= env.max_steps:
                     ddqn_done = True
@@ -338,6 +370,9 @@ def run_pathfinder(
             if not ppo_done:
                 ppo_action, logprob, val = ppo_agent.select_action(ppo_state, greedy=False)
                 ppo_next_state, ppo_reward, ppo_done, info = ppo_env.step(ppo_action)
+                if info.get("event") == "collision":
+                    ppoa_ep_collisions += 1
+                ppoa_path_taken.append(tuple(ppo_env.current_pos))
                 ppo_agent.remember(ppo_state, ppo_action, logprob, ppo_reward, val, ppo_done)
                 ppo_state = ppo_next_state
                 ppo_ep_reward += ppo_reward
@@ -345,6 +380,8 @@ def run_pathfinder(
                 
                 if info.get("event") == "goal_reached":
                     logger.info(f"[PPOA*] Reached Goal! | Ep: {episode+1}/{n_episodes} | Steps: {ppo_steps} | Reward: {ppo_ep_reward:.1f} | Epsilon: N/A")
+                    ppoa_success_eps += 1
+                    ppoa_latest_success_path = list(ppoa_path_taken)
 
                 if ppo_steps >= ppo_env.max_steps:
                     ppo_done = True
@@ -381,6 +418,14 @@ def run_pathfinder(
         if a_loss is not None:
             ppo_actor_losses.append(a_loss)
             ppo_critic_losses.append(c_loss)
+            
+        ddqn_all_path_costs.append(len(ddqn_path_taken) - 1)
+        ddqn_all_collisions.append(ddqn_ep_collisions)
+        ddqn_all_smoothness.append(_calculate_smoothness(ddqn_path_taken))
+        
+        ppoa_all_path_costs.append(len(ppoa_path_taken) - 1)
+        ppoa_all_collisions.append(ppoa_ep_collisions)
+        ppoa_all_smoothness.append(_calculate_smoothness(ppoa_path_taken))
 
         ddqn_ep_rewards.append(ddqn_ep_reward)
         ddqn_ep_steps.append(ddqn_steps)
@@ -455,10 +500,11 @@ def run_pathfinder(
     result.ddqn_cpu_peak = psutil.cpu_percent(interval=None)
     result.ddqn_mem_peak = (process.memory_info().rss - mem_start) / (1024*1024)
 
-    result.ddqn_path = ddqn_path
-    result.ddqn_path_cost = float(len(ddqn_path) - 1) if len(ddqn_path) > 1 else float("inf")
-    result.ddqn_collisions = ddqn_coll
-    result.ddqn_smoothness = ddqn_smooth
+    result.ddqn_path = ddqn_latest_success_path if ddqn_latest_success_path else ddqn_path
+    result.ddqn_success_rate = ddqn_success_eps / max(1, n_episodes)
+    result.ddqn_path_cost = float(np.mean(ddqn_all_path_costs)) if ddqn_all_path_costs else float("inf")
+    result.ddqn_collisions = float(np.mean(ddqn_all_collisions)) if ddqn_all_collisions else 0.0
+    result.ddqn_smoothness = float(np.mean(ddqn_all_smoothness)) if ddqn_all_smoothness else 0.0
     
     # ── PPOA greedy inference ─────────────────────────────────────────────────
     ppo_weights_path = weights_path.replace("ddqn", "ppoa")
@@ -479,10 +525,11 @@ def run_pathfinder(
     result.ppoa_actor_losses = ppo_actor_losses
     result.ppoa_critic_losses = ppo_critic_losses
     result.ppoa_convergence_episode = ppo_convergence_ep
-    result.ppoa_path = ppo_path
-    result.ppoa_path_cost = float(len(ppo_path) - 1) if len(ppo_path) > 1 else float("inf")
-    result.ppoa_collisions = ppo_coll
-    result.ppoa_smoothness = ppo_smooth
+    result.ppoa_path = ppoa_latest_success_path if ppoa_latest_success_path else ppo_path
+    result.ppoa_success_rate = ppoa_success_eps / max(1, n_episodes)
+    result.ppoa_path_cost = float(np.mean(ppoa_all_path_costs)) if ppoa_all_path_costs else float("inf")
+    result.ppoa_collisions = float(np.mean(ppoa_all_collisions)) if ppoa_all_collisions else 0.0
+    result.ppoa_smoothness = float(np.mean(ppoa_all_smoothness)) if ppoa_all_smoothness else 0.0
     result.ppoa_replans = ppo_replans
     result.ppoa_dyn_avoid_rate = ppo_avoid_rate
 
@@ -559,7 +606,8 @@ def _run_ddqn_inference(agent, grid, start, goal, max_steps: int = 5000) -> tupl
         if info.get("event") == "goal_reached":
             return path, collisions, _calculate_smoothness(path)
 
-    return [], collisions, 0.0
+    # Return the path even if we didn't reach the goal so we can visualize it
+    return path, collisions, _calculate_smoothness(path)
 
 def _run_ppoa_inference(agent, env, max_steps: int = 5000) -> tuple:
     state = env.reset()
@@ -596,5 +644,5 @@ def _run_ppoa_inference(agent, env, max_steps: int = 5000) -> tuple:
             smoothness = _calculate_smoothness(path)
             return path, collisions, smoothness, env.replans, avoid_rate
 
-    # Failed to reach goal
-    return [], collisions, 0.0, env.replans, 0.0
+    # Failed to reach goal, but return path so it can be drawn
+    return path, collisions, 0.0, env.replans, 0.0

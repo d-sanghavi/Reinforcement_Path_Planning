@@ -483,7 +483,7 @@ def run_pipeline(args):
 
     metrics_data = {
         "DDQN": {
-            "Success Rate": 1.0 if planning_result.ddqn_path_cost < float("inf") else 0.0,
+            "Success Rate": planning_result.ddqn_success_rate,
             "Average Episode Reward": calc_mean_reward(planning_result.ddqn_episode_rewards),
             "Convergence Speed (Episodes)": planning_result.ddqn_convergence_episode,
             "Path Length (cells)": planning_result.ddqn_path_cost,
@@ -499,7 +499,7 @@ def run_pipeline(args):
             "Memory Peak Usage (MB)": planning_result.ddqn_mem_peak
         },
         "PPOA*": {
-            "Success Rate": 1.0 if planning_result.ppoa_path_cost < float("inf") else 0.0,
+            "Success Rate": planning_result.ppoa_success_rate,
             "Average Episode Reward": calc_mean_reward(planning_result.ppoa_episode_rewards),
             "Convergence Speed (Episodes)": planning_result.ppoa_convergence_episode,
             "Path Length (cells)": planning_result.ppoa_path_cost,

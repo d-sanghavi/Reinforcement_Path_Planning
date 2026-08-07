@@ -41,22 +41,24 @@ An advanced On-Policy agent using Proximal Policy Optimization (PPO) fused with 
 
 ## 📊 Comprehensive Metrics & Analytics Engine
 
-The pipeline auto-evaluates its own performance. At the conclusion of every execution, it generates a comprehensive side-by-side JSON report (`Results/metrics.json`) between **DDQN** and **PPOA*** covering the following 14 data points:
+The pipeline auto-evaluates its own performance. At the conclusion of every execution, it generates a comprehensive side-by-side JSON report (`Results/metrics.json`) between **DDQN** and **PPOA*** covering the following 14 data points. **Note:** To provide a true reflection of overall agent behavior and stability, most path-related metrics (Length, Smoothness, Collisions) are calculated as the true mean average across all training episodes rather than a single greedy inference run.
 
-1. **Success Rate:** Binary metric evaluating if the greedy inference agent successfully navigated to the goal.
+1. **Success Rate:** The exact percentage of training episodes where the agent successfully navigated to the goal.
 2. **Average Episode Reward:** The mean reward the agent achieved across all training batches.
 3. **Convergence Speed:** The specific episode number where the mean reward mathematically stabilized above our tolerance threshold.
-4. **Path Length (Cells):** Total discrete cells traversed by the RL path.
+4. **Path Length (Cells):** Average total discrete cells traversed by the agent across the training run.
 5. **Path Length in Real World (m):** Converts grid scale back to physical meters (e.g., based on the original DXF file's scale mapping).
 6. **Planning Time:** Milliseconds taken for final neural-network inference.
 7. **Total Navigation Time:** Milliseconds taken including overhead and heuristic combinations.
 8. **Optimality Ratio:** Algorithm Path Length ÷ Pure A* Optimal Length. (*1.000 means mathematically perfect.*)
-9. **Collision Rate:** How often the fully-trained agent bumped into walls during final inference.
+9. **Collision Rate:** Average percentage of steps where the agent bumped into walls during the run.
 10. **Dynamic Obstacle Avoidance Rate:** Success rate of PPOA* rerouting around mid-simulation occlusions.
-11. **Path Smoothness:** Measured cumulatively in absolute heading degree changes (e.g., zigzagging vs. straight lines).
+11. **Path Smoothness:** Measured cumulatively in absolute heading degree changes (e.g., zigzagging vs. straight lines), averaged over the run.
 12. **Replanning Frequency:** Number of times the PPOA* agent had to trigger a hard reset of its internal A* sub-routine.
 13. **CPU Peak Usage (%):** Monitored autonomously via `psutil`.
 14. **Memory Peak Usage (MB):** Monitored autonomously via `psutil`.
+
+> **Visual Overlays:** The `metrics_dashboard.png` will always render the **latest successful path** the agent discovered during training, ensuring you can visually inspect exactly how it reached the goal, even if it took highly exploratory routes.
 
 ---
 

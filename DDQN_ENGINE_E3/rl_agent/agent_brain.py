@@ -32,13 +32,13 @@ logger = logging.getLogger(__name__)
 
 # ── Hyperparameters ────────────────────────────────────────────────────────────
 GAMMA = 0.99            # discount factor
-LR = 1e-3               # Adam learning rate
+LR = 5e-4               # Adam learning rate
 BATCH_SIZE = 64         # replay batch size
 REPLAY_CAPACITY = 50_000
 TARGET_UPDATE_FREQ = 500  # steps between target network sync
 EPS_START = 1.0         # initial exploration rate
 EPS_END = 0.01          # minimum exploration rate
-EPS_DECAY_STEPS = 5000  # steps for epsilon to decay from start to end
+EPS_DECAY_STEPS = 50_000  # steps for epsilon to decay from start to end
 MIN_REPLAY_SIZE = 512   # minimum replay size before learning starts
 
 
@@ -139,6 +139,9 @@ class SumTree:
                     parent_idx = right_child_idx
 
         data_idx = leaf_idx - self.capacity + 1
+        if data_idx >= self.n_entries:
+            data_idx = max(0, self.n_entries - 1)
+            leaf_idx = data_idx + self.capacity - 1
         return leaf_idx, self.tree[leaf_idx], self.data[data_idx]
 
     @property
@@ -179,12 +182,7 @@ class PrioritizedReplayBuffer:
             s = random.uniform(a, b)
             (idx, p, data) = self.tree.get_leaf(s)
             
-            # Handle edge case if we sample an uninitialized leaf
-            if data == 0 and type(data) == int:
-                # This can happen if total_p isn't perfectly accurate or if we sample too fast
-                # We just re-sample a random element from the ones we have added
-                data = self.tree.data[random.randint(0, max(0, self.tree.n_entries-1))]
-                p = max(self.epsilon, p)
+            p = max(self.epsilon, p)
 
             priorities.append(p)
             batch.append(data)
@@ -583,4 +581,3 @@ class PPOAgent:
         self.actor.load_state_dict(checkpoint["actor_state_dict"])
         self.critic.load_state_dict(checkpoint["critic_state_dict"])
         self.global_step = checkpoint.get("global_step", 0)
-

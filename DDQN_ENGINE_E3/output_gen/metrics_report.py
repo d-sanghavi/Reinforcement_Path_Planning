@@ -123,7 +123,7 @@ def generate_metrics_dashboard(
     table_data = [
         ["Metric",                                  "DDQN",                   "PPOA*"],
         ["────────────────────────────────────",  "────────",               "────────"],
-        ["1. Success Rate (Found Goal)",            "100%" if pr.ddqn_path_cost != float("inf") else "0%", "100%" if getattr(pr, "ppoa_path_cost", float("inf")) != float("inf") else "0%"],
+        ["1. Success Rate (Found Goal)",            f"{getattr(pr, 'ddqn_success_rate', 0)*100:.0f}%", f"{getattr(pr, 'ppoa_success_rate', 0)*100:.0f}%"],
         ["2. Avg Episode Reward (last 10)",         f"{ddqn_mean_r:.1f}",     f"{ppo_mean_r:.1f}"],
         ["3. Convergence Speed (Episodes)",         f"{pr.ddqn_convergence_episode}", f"{getattr(pr, 'ppoa_convergence_episode', '-')}"] ,
         ["4. Path Length (Grid Cells)",             f"{int(pr.ddqn_path_cost) if pr.ddqn_path_cost!=float('inf') else '-'}", f"{int(getattr(pr, 'ppoa_path_cost', 0)) if getattr(pr, 'ppoa_path_cost', 0)!=float('inf') else '-'}"] ,
