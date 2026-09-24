@@ -192,7 +192,7 @@ def run_pathfinder(
 
     # ── Run DDQN training simulation ──────────────────────────────────────────
     device = "cpu"
-    env = GridWorldEnv(grid, start, goal, max_steps=max(300, int(math.hypot(*grid.shape) * 3)))
+    env = GridWorldEnv(grid, start, goal, max_steps=1500)
     agent = DDQNAgent(env.state_size, N_ACTIONS, device=device)
 
     # ── Initialize live visualization (if requested) ──────────────────────────
